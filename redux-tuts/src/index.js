@@ -10,37 +10,71 @@ import reportWebVitals from './reportWebVitals';
 const TODO_ADD = 'TODO_ADD';
 const TODO_TOGGLE = 'TODO_TOGGLE';
 const FILTER_SET = 'FILTER_SET';
+const ASSIGNED_TO_CHANGE = 'ASSIGNED_TO_CHANGE'
 
 const todos = [
-  { id: '0', name: 'learn redux' },
-  {id: '1', name: 'learn mobx'}
-]
+  {
+    id: "0",
+    name: "learn redux",
+    completed: true,
+    assignedTo: {
+      id: "99",
+      name: "Dan Abramov",
+    },
+  },
+  {
+    id: "1",
+    name: "create mobx",
+    completed: true,
+    assignedTo: {
+      id: "77",
+      name: "Michael Westrate",
+    },
+  }
+];
 
-function TodoReducer(state = todos, action) {
-  console.log("todoReducer triggered!", action.type);
+
+
+function todoReducer(state = todos, action) {
   switch (action.type) {
     case TODO_ADD:
       return applyAddTodo(state, action);
 
     case TODO_TOGGLE:
       return applyToggleTodo(state, action);
-    
-    default: return state;
+
+    case ASSIGNED_TO_CHANGE:
+      return applyChangeAssignedTo(state, action);
+
+    default:
+      return state;
   }
 }
 
 function applyAddTodo(state, action) {
-  const todo = Object.assign({}, action.todo, { completed: false });
-  return state.concat(todo);
+ const todo = { ...action.todo, completed: false };
+ const newTodos = [...todos, todo];
+ return newTodos;
 }
 
 function applyToggleTodo(state, action) {
-  console.log("apply toggle triggered!!", state);
   return state.map(todo =>
     todo.id === action.todo.id
-      ? Object.assign({}, todo, { completed: !todo.completed })
+      ? {...todo, completed: !todo.completed}
       : todo
   );
+}
+
+function applyChangeAssignedTo(state, action) {
+  console.log("Apply change assigned to ");
+   return state.map((todo) => {
+     if (todo.id === action.payload.todoId) {
+       const assignedTo = { ...todo.assignedTo, name: action.payload.name };
+       return { ...todo, assignedTo };
+     } else {
+       return todo;
+     }
+   });
 }
 
 function filterReducer(state = "SHOW_ALL", action) {
@@ -82,11 +116,13 @@ function doSetFilter(filter) {
 
 //store
 const rootReducer = combineReducers({
-  todoState: TodoReducer,
+  todoState: todoReducer,
   filterState: filterReducer
 });
 
 const store = createStore(rootReducer);
+
+
 
 const TodoApp = ({todos, onToggleTodo}) => (
   <ConnectedTodoList
@@ -146,7 +182,13 @@ const ConnectedTodoItem = connect(null, mapDispatchToProps)(TodoItem);
     document.getElementById("root")
   )
 
-
+store.dispatch({
+  type: ASSIGNED_TO_CHANGE,
+  payload: {
+    todoId: "0",
+    name: "Dan Abramov and Andrew Clark",
+  },
+});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

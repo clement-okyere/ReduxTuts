@@ -2,8 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { } from 'redux';
 import './index.css';
-import { combineReducers, createStore } from 'redux';
+import { applyMiddleware , combineReducers, createStore } from 'redux';
 import { Provider, connect } from 'react-redux';
+import logger, { CreateLogger } from 'redux-logger';
 //import App from './App';
 import reportWebVitals from './reportWebVitals';
 
@@ -66,7 +67,6 @@ function applyToggleTodo(state, action) {
 }
 
 function applyChangeAssignedTo(state, action) {
-  console.log("Apply change assigned to ");
    return state.map((todo) => {
      if (todo.id === action.payload.todoId) {
        const assignedTo = { ...todo.assignedTo, name: action.payload.name };
@@ -120,7 +120,11 @@ const rootReducer = combineReducers({
   filterState: filterReducer
 });
 
-const store = createStore(rootReducer);
+const store = createStore(
+  rootReducer,
+  undefined,
+  applyMiddleware(logger)
+);
 
 
 
@@ -144,7 +148,6 @@ const TodoList = ({ todos }) => {
 
 const TodoItem = ({ todo, onToggleTodo }) => {
   const { name, id, completed } = todo;
-  console.log("todo", todo);
   return (
     <div>
       {name}
